@@ -1,7 +1,7 @@
 /*
 MIT License
 
-Copyright (c) 2020 ThingPulse GmbH
+Copyright (c) 2020 SienkLogic, LLC
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -31,18 +31,11 @@ SOFTWARE.
 #include "sounds.h"
 #include "icons.h"
 
-
-
 // Audio Settings
 #define I2S_DOUT      25
 #define I2S_BCLK      26
 #define I2S_LRC       22
 #define MODE_PIN      33
-
-// // LED Settings
-// #define LED_COUNT   64
-// #define LED_PIN     32
-// #define CHANNEL     0
 
 #define NUM_LEDS 64
 #define LED_DATA_PIN 14
@@ -54,7 +47,6 @@ SOFTWARE.
 #define SAMPLING_FREQUENCY 44100 
 
 #define BRIGHTNESS 100
-
 #define DEVICE_NAME "Sienk64"
 
 arduinoFFT FFT = arduinoFFT();
@@ -99,6 +91,24 @@ uint8_t getLedIndex(uint8_t x, uint8_t y) {
   // } else {
     //  return y*8 + (7 - x);
   // }
+}
+
+CHSV colorize(int i){
+  return CHSV((128+i * 16)%256, 255, 255);
+}
+
+EOrder rgb_order = RGB;
+
+CRGB colorize(uint8_t r, uint8_t g, uint8_t b) {
+  switch(rgb_order) {
+    default:
+    case RGB: return CRGB(r,g,b);
+    case RBG: return CRGB(r,b,g);
+    case BGR: return CRGB(b,g,r);
+    case BRG: return CRGB(b,r,g);
+    case GBR: return CRGB(g,b,r);
+    case GRB: return CRGB(g,r,b);
+  }
 }
 
 void createBands(int i, int dsize) {
@@ -159,7 +169,7 @@ void renderFFT(void * parameter){
         intensity = map(peak[band], 1, amplitude, 0, 8);
 
         for (int i = 0; i < 8; i++) {
-          leds[getLedIndex(7 - i, 7 - band)] = (i >= intensity) ? CHSV(0, 0, 0) : CHSV(i * 16, 255, 255);
+          leds[getLedIndex(7 - i, 7 - band)] = (i >= intensity) ? CHSV(0, 0, 0) : colorize(i);
         }
       }
 
@@ -178,6 +188,17 @@ void renderFFT(void * parameter){
 
 void drawIcon(const uint32_t *icon) {
   animationCounter++;
+
+  switch(animationCounter % 10000) {
+    case 1000: rgb_order = RGB; break;
+    case 2000: rgb_order = RBG; break;
+    case 3000: rgb_order = BGR; break;
+    case 4000: rgb_order = BRG; break;
+    case 5000: rgb_order = GRB; break;
+    case 6000: rgb_order = GBR; break;
+    case 7000: rgb_order = RGB; break;
+  }
+
   uint8_t brightness = 0;
   for (int i = 0; i < 64; i++) {
     uint32_t pixel = pgm_read_dword(icon + i);
@@ -185,14 +206,12 @@ void drawIcon(const uint32_t *icon) {
     uint8_t green = (pixel >> 8) & 0xFF;
     uint8_t blue = pixel & 0xFF;
     log_v("%d. %08X, %02X %02X %02X", i, pixel, red, green, blue);
-    brightness = 50 + (sin(animationCounter / 40.0) * 50);
+    brightness = 30 + (sin(animationCounter / 100.0) * 30);
     FastLED.setBrightness(  brightness );
-    leds[getLedIndex(i % 8, i / 8)] = CRGB(green, red, blue);
+    leds[getLedIndex(i % 8, i / 8)] = colorize(red, green, blue);
   }
   delay(1);
   FastLED.show();
-
-
 }
 
 void audio_data_callback(const uint8_t *data, uint32_t len) {
@@ -270,7 +289,7 @@ void loop() {
   switch(state) {
       case ESP_A2D_AUDIO_STATE_REMOTE_SUSPEND: 
         if (hasDevicePlayedAudio) {
-          drawIcon(PAUSE);
+          drawIcon(HEART2);
         } else {
           drawIcon(HEART2);
         }
