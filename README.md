@@ -1,2 +1,4 @@
-ESP32 based bluetooth loudspeaker with 8 band spectrum analyzer. This firmware is made for 
-the Icon64: https://thingpulse.com/product/icon64-esp32-with-rgb-matrix-and-audio/
+TinyPico (ESP32) based headphone/bluetooth-receiver with 8 band spectrum analyzer.
+
+Forked from [ThingPulse/esp32-icon64-a2dp](https://github.com/ThingPulse/esp32-icon64-a2dp).
+
