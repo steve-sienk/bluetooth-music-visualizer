@@ -39,13 +39,14 @@ SOFTWARE.
 #define I2S_LRC       22
 #define MODE_PIN      33
 
-// LED Settings
-#define LED_COUNT   64
-#define LED_PIN     32
-#define CHANNEL     0
+// // LED Settings
+// #define LED_COUNT   64
+// #define LED_PIN     32
+// #define CHANNEL     0
 
 #define NUM_LEDS 64
-#define DATA_PIN 32
+#define LED_DATA_PIN 14
+#define LED_CLOCK_PIN 15
 
 // FFT Settings
 #define NUM_BANDS  8
@@ -54,7 +55,7 @@ SOFTWARE.
 
 #define BRIGHTNESS 100
 
-#define DEVICE_NAME "ThingPulse-Icon64"
+#define DEVICE_NAME "Sienk64"
 
 arduinoFFT FFT = arduinoFFT();
 BluetoothA2DPSink a2dp_sink;
@@ -68,7 +69,7 @@ int32_t peak[] = {0, 0, 0, 0, 0, 0, 0, 0};
 double vReal[SAMPLES];
 double vImag[SAMPLES];
 
-double brightness = 0.25;
+double brightness = 0.75;
 
 QueueHandle_t queue;
 
@@ -93,11 +94,11 @@ bool hasDevicePlayedAudio = false;
 
 uint8_t getLedIndex(uint8_t x, uint8_t y) {
   //x = 7 - x;
-  if (y % 2 == 0) {
+  // if (y % 2 == 0) {
     return y * 8 + x;
-  } else {
-    return y*8 + (7 - x);
-  }
+  // } else {
+    //  return y*8 + (7 - x);
+  // }
 }
 
 void createBands(int i, int dsize) {
@@ -224,7 +225,7 @@ void playBootupSound() {
   aac->begin(in, out);
 
   while (aac->isRunning()) {
-    drawIcon(HEART);
+    drawIcon(HEART2);
     aac->loop();
   }
   aac->stop();
@@ -235,7 +236,7 @@ void setup() {
     pinMode(pushButton, INPUT);
     digitalWrite(MODE_PIN, HIGH);
 
-    FastLED.addLeds<WS2812B, DATA_PIN>(leds, NUM_LEDS);
+    FastLED.addLeds<APA102, LED_DATA_PIN, LED_CLOCK_PIN>(leds, NUM_LEDS);
     playBootupSound();
 
     // The queue is used for communication between A2DP callback and the FFT processor
@@ -271,7 +272,7 @@ void loop() {
         if (hasDevicePlayedAudio) {
           drawIcon(PAUSE);
         } else {
-          drawIcon(HEART);
+          drawIcon(HEART2);
         }
         break;
       case ESP_A2D_AUDIO_STATE_STOPPED:
